@@ -50,32 +50,47 @@
     </div>
 
     <script>
-        const appId = '628564';
-        const secretKey = '3d71987056ebd1d4b2d44e413c951c22';
+        const clientId = '628564';
+        const redirectUri = 'https://merlinpinpouin.github.io/deezer-music-integration/';
+        const scopes = 'basic_access,email,listening_history';
 
-        function fetchDeezerData() {
-            const deezerApiUrl = `https://api.deezer.com/user/${appId}/tracks?secret=${secretKey}&limit=1`;
-
-            // Make a JSONP request to Deezer API
-            const script = document.createElement('script');
-            script.src = deezerApiUrl;
-            document.body.appendChild(script);
+        // Function to initiate Deezer OAuth login
+        function authorizeDeezer() {
+            const authorizeUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${clientId}&redirect_uri=${redirectUri}&perms=${scopes}`;
+            window.location.href = authorizeUrl;
         }
 
-        // Function called by JSONP response from Deezer API
-        function callbackDeezerData(data) {
-            const musicInfo = data[0];
+        // Function to fetch and update Deezer data using user's token
+        function fetchAndUpdateDeezerData(token) {
+            const deezerApiUrl = `https://api.deezer.com/user/me/history?access_token=${token}&limit=1`;
 
-            const albumCover = document.querySelector('.album-cover');
-            const songTitle = document.querySelector('.song-title');
-            const artistName = document.querySelector('.artist-name');
+            // Make a request to Deezer API
+            fetch(deezerApiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const musicInfo = data.data[0].track;
 
-            albumCover.src = musicInfo.album.cover_medium;
-            songTitle.textContent = musicInfo.title;
-            artistName.textContent = musicInfo.artist.name;
+                    const albumCover = document.querySelector('.album-cover');
+                    const songTitle = document.querySelector('.song-title');
+                    const artistName = document.querySelector('.artist-name');
+
+                    albumCover.src = musicInfo.album.cover_medium;
+                    songTitle.textContent = musicInfo.title;
+                    artistName.textContent = musicInfo.artist.name;
+                })
+                .catch(error => console.error(error));
         }
 
-        fetchDeezerData();
+        // Check if there's a token in the URL (after user authorization)
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('access_token');
+
+        // If token exists, use it to fetch data; otherwise, initiate Deezer OAuth login
+        if (token) {
+            fetchAndUpdateDeezerData(token);
+        } else {
+            authorizeDeezer();
+        }
     </script>
 </body>
 </html>
