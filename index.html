@@ -51,8 +51,9 @@
 
     <script>
         const clientId = '628564';
+        const clientSecret = '3d71987056ebd1d4b2d44e413c951c22';
         const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/';
-        const scopes = 'basic_access,email,listening_history';
+        const scopes = 'basic_access,email';
 
         // Function to initiate Deezer OAuth login
         function authorizeDeezer() {
@@ -60,34 +61,42 @@
             window.location.href = authorizeUrl;
         }
 
-        // Function to fetch and update Deezer data using user's token
-        function fetchAndUpdateDeezerData(token) {
-            const deezerApiUrl = `https://api.deezer.com/user/me/history?access_token=${token}&limit=1`;
-
-            // Make a request to Deezer API
-            fetch(deezerApiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    const musicInfo = data.data[0].track;
-
-                    const albumCover = document.querySelector('.album-cover');
-                    const songTitle = document.querySelector('.song-title');
-                    const artistName = document.querySelector('.artist-name');
-
-                    albumCover.src = musicInfo.album.cover_medium;
-                    songTitle.textContent = musicInfo.title;
-                    artistName.textContent = musicInfo.artist.name;
-                })
-                .catch(error => console.error(error));
+        // Function to fetch access token using authorization code
+        async function fetchAccessToken(authorizationCode) {
+            const accessTokenUrl = `https://connect.deezer.com/oauth/access_token.php?app_id=${clientId}&secret=${clientSecret}&code=${authorizationCode}`;
+            const response = await fetch(accessTokenUrl);
+            const responseData = await response.text();
+            const accessToken = new URLSearchParams(responseData).get('access_token');
+            return accessToken;
         }
 
-        // Check if there's a token in the URL (after user authorization)
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('access_token');
+        // Function to fetch and update Deezer data using access token
+        async function fetchAndUpdateDeezerData(accessToken) {
+            const deezerApiUrl = `https://api.deezer.com/user/me/history?access_token=${accessToken}&limit=1`;
 
-        // If token exists, use it to fetch data; otherwise, initiate Deezer OAuth login
-        if (token) {
-            fetchAndUpdateDeezerData(token);
+            // Make a request to Deezer API
+            const response = await fetch(deezerApiUrl);
+            const responseData = await response.json();
+            const musicInfo = responseData.data[0].track;
+
+            const albumCover = document.querySelector('.album-cover');
+            const songTitle = document.querySelector('.song-title');
+            const artistName = document.querySelector('.artist-name');
+
+            albumCover.src = musicInfo.album.cover_medium;
+            songTitle.textContent = musicInfo.title;
+            artistName.textContent = musicInfo.artist.name;
+        }
+
+        // Check if there's an authorization code in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const authorizationCode = urlParams.get('code');
+
+        // If authorization code exists, use it to fetch access token; otherwise, initiate Deezer OAuth login
+        if (authorizationCode) {
+            fetchAccessToken(authorizationCode)
+                .then(accessToken => fetchAndUpdateDeezerData(accessToken))
+                .catch(error => console.error(error));
         } else {
             authorizeDeezer();
         }
