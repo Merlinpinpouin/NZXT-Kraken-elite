@@ -56,13 +56,13 @@
 
         // Function to initiate Deezer OAuth login
         function authorizeDeezer() {
-            const authorizeUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${clientId}&redirect_uri=${redirectUri}&perms=${scopes}`;
+            const authorizeUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=${scopes}`;
             window.location.href = authorizeUrl;
         }
 
         // Function to fetch and update Deezer data using user's token
         function fetchAndUpdateDeezerData(token) {
-            const deezerApiUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=${scopes}`;
+            const deezerApiUrl = `https://api.deezer.com/user/me/history?access_token=${token}&limit=1`;
 
             // Make a request to Deezer API
             fetch(deezerApiUrl)
