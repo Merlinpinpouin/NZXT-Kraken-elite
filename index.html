@@ -20,34 +20,33 @@
     <div id="now-playing">Veuillez vous connecter pour voir la musique en cours de lecture.</div>
     <button id="login-button">Se connecter avec Deezer</button>
 
-    <script src="https://cdn.jsdelivr.net/npm/deezer-web-sdk@latest/dist/deezer-web-sdk.min.js"></script>
+    <div id="dz-root"></div>
+    <script src="https://e-cdn-files.dzcdn.net/js/min/dz.js"></script>
     <script>
-        // Initialisation de l'application Deezer
         const APP_ID = '628564';
         const APP_DOMAIN = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite';
 
-        window.dzAsyncInit = function() {
-            DZ.init({
-                appId: APP_ID,
-                channelUrl: APP_DOMAIN + '/channel.html',
-                player: {
-                    onReady: function() {
-                        console.log('Deezer SDK ready');
-                        document.getElementById('login-button').addEventListener('click', function() {
-                            DZ.login(function(response) {
-                                if (response.authResponse) {
-                                    console.log('Logged in');
-                                    updateNowPlaying();
-                                } else {
-                                    console.log('Login failed');
-                                    document.getElementById('now-playing').textContent = 'Échec de la connexion.';
-                                }
-                            });
+        // Initialise le SDK Deezer
+        DZ.init({
+            appId: APP_ID,
+            channelUrl: APP_DOMAIN + '/channel.html',
+            player: {
+                onReady: function() {
+                    console.log('Deezer SDK ready');
+                    document.getElementById('login-button').addEventListener('click', function() {
+                        DZ.login(function(response) {
+                            if (response.authResponse) {
+                                console.log('Logged in');
+                                updateNowPlaying();
+                            } else {
+                                console.log('Login failed');
+                                document.getElementById('now-playing').textContent = 'Échec de la connexion.';
+                            }
                         });
-                    }
+                    });
                 }
-            });
-        };
+            }
+        });
 
         function updateNowPlaying() {
             DZ.api('/user/me/player/currently-playing', function(response) {
@@ -59,15 +58,6 @@
                 }
             });
         }
-
-        // Charger le SDK Deezer
-        (function(d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.deezer.com/sdk/js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'deezer-sdk'));
     </script>
 </body>
 </html>
