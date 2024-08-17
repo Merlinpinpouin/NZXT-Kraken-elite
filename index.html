@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deezer Now Playing</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://e-cdn-files.dzcdn.net/js/min/dz.js"></script>  <!-- SDK Deezer -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,6 +18,7 @@
     </style>
 </head>
 <body>
+    <div id="dz-root"></div> <!-- Obligatoire pour le SDK Deezer -->
     <h1>Deezer Now Playing</h1>
     <button id="login-btn">Se connecter à Deezer</button>
     <div id="current-track">
@@ -27,59 +29,39 @@
     </div>
 
     <script>
-        const appId = '628564';  // Votre Application ID Deezer
-        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/index.html';  // URL de redirection
-
-        let accessToken = '';
+        DZ.init({
+            appId  : '628564',  // Votre Application ID Deezer
+            channelUrl : 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/channel.html' // URL vers votre fichier channel.html
+        });
 
         // Fonction pour se connecter à Deezer
-        function login() {
-            const authUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&perms=basic_access,offline_access`;
-            window.location.href = authUrl;
-        }
+        $('#login-btn').on('click', function() {
+            DZ.login(function(response) {
+                if (response.authResponse) {
+                    getCurrentTrack();
+                } else {
+                    console.log('User cancelled login or did not fully authorize.');
+                }
+            }, { perms: 'basic_access,listening_history' });
+        });
 
         // Fonction pour obtenir les informations de la musique en cours
         function getCurrentTrack() {
-            if (!accessToken) return;
-
-            $.ajax({
-                url: 'https://api.deezer.com/user/4529283902/history',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                success: function(data) {
-                    if (data && data.data && data.data.length > 0) {
-                        const track = data.data[0]; // Prenons la piste la plus récente
-                        $('#artist').text(track.artist.name);
-                        $('#album').text(track.album.title);
-                        $('#title').text(track.title);
-                        $('#album-art').attr('src', track.album.cover_big);
-                    } else {
-                        $('#artist').text('-');
-                        $('#album').text('-');
-                        $('#title').text('-');
-                        $('#album-art').attr('src', '');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Erreur lors de la récupération des données :', error);
+            DZ.api('/user/me/history', function(response) {
+                if (response.data && response.data.length > 0) {
+                    const track = response.data[0];
+                    $('#artist').text(track.artist.name);
+                    $('#album').text(track.album.title);
+                    $('#title').text(track.title);
+                    $('#album-art').attr('src', track.album.cover_big);
+                } else {
+                    $('#artist').text('-');
+                    $('#album').text('-');
+                    $('#title').text('-');
+                    $('#album-art').attr('src', '');
                 }
             });
         }
-
-        // Vérifie si nous avons un access token dans l'URL
-        function checkAccessToken() {
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            if (hashParams.has('access_token')) {
-                accessToken = hashParams.get('access_token');
-                window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
-                getCurrentTrack(); // Obtenir les informations de la musique en cours
-            }
-        }
-
-        // Événements
-        $('#login-btn').on('click', login);
-        $(document).ready(checkAccessToken);
     </script>
 </body>
 </html>
