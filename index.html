@@ -70,9 +70,17 @@
         function checkAccessToken() {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             if (hashParams.has('access_token')) {
-                accessToken = hashParams.get('access_token');
-                window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
-                getCurrentTrack(); // Obtenir les informations de la musique en cours
+                const code = hashParams.get('access_token');
+                fetch(`http://localhost:3000/get-access-token?code=${code}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        accessToken = data.accessToken;
+                        window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
+                        getCurrentTrack(); // Obtenir les informations de la musique en cours
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la récupération du jeton d\'accès :', error);
+                    });
             }
         }
 
