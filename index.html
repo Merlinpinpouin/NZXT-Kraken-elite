@@ -18,32 +18,31 @@
 
     <script>
         const appId = '628564';
-        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/index.html'; // Assure-toi que cela correspond à ce que tu as configuré dans Deezer
+        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/index.html'; // URL de redirection configurée
 
-        document.getElementById('connect').addEventListener('click', () => {
-            // Redirection vers la page de connexion Deezer
-            window.location.href = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=basic_access,listening_history`;
-        });
+        // Fonction pour rediriger vers Deezer pour l'authentification
+        function redirectToDeezerAuth() {
+            const authUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=basic_access,listening_history`;
+            window.location.href = authUrl;
+        }
 
-        // Fonction pour vérifier le token d'accès
+        // Affiche le bouton de connexion si le token n'est pas encore stocké
+        document.getElementById('connect').addEventListener('click', redirectToDeezerAuth);
+
+        // Fonction pour gérer le token d'accès et afficher les informations de la musique en cours
         function handleToken() {
             const urlParams = new URLSearchParams(window.location.hash.substr(1));
             const accessToken = urlParams.get('access_token');
 
             if (accessToken) {
-                // Stocker le token dans localStorage
                 localStorage.setItem('deezer_access_token', accessToken);
-                // Nettoyer l'URL en retirant le fragment
                 window.location.hash = '';
-                // Afficher les informations de la musique en cours
                 displayNowPlaying(accessToken);
             } else {
-                // Vérifier si le token est déjà stocké
                 const storedToken = localStorage.getItem('deezer_access_token');
                 if (storedToken) {
                     displayNowPlaying(storedToken);
                 } else {
-                    // Afficher le bouton de connexion si aucun token n'est trouvé
                     document.getElementById('connect').style.display = 'block';
                 }
             }
@@ -51,7 +50,6 @@
 
         // Fonction pour afficher les informations de la musique en cours
         function displayNowPlaying(accessToken) {
-            document.getElementById('connect').style.display = 'none';
             fetch('https://api.deezer.com/user/me/player?access_token=' + accessToken)
                 .then(response => response.json())
                 .then(data => {
@@ -68,7 +66,7 @@
                 .catch(error => console.error('Erreur lors de la récupération des données :', error));
         }
 
-        // Appel de la fonction pour vérifier le token lorsque la page se charge
+        // Appelle la fonction pour gérer le token à chaque chargement de la page
         handleToken();
     </script>
 </body>
