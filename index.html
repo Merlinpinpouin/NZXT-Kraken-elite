@@ -18,18 +18,21 @@
 
     <script>
         const appId = '628564';
-        const redirectUri = window.location.href;
+        const redirectUri = 'http://localhost:3000'; // Remplace par ton URL de redirection
 
         document.getElementById('connect').addEventListener('click', () => {
             window.location.href = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=basic_access,listening_history`;
         });
 
-        // Récupérer le token d'accès depuis l'URL
+        // Récupération du token d'accès depuis l'URL
         const urlParams = new URLSearchParams(window.location.hash.substr(1));
         const accessToken = urlParams.get('access_token');
 
         if (accessToken) {
-            // Cacher le bouton de connexion si connecté
+            // Stocker le token dans localStorage pour une utilisation ultérieure
+            localStorage.setItem('deezer_access_token', accessToken);
+
+            // Cacher le bouton de connexion si le token est présent
             document.getElementById('connect').style.display = 'none';
 
             // Afficher la musique en cours
@@ -43,6 +46,26 @@
                     document.getElementById('albumCover').src = data.track.album.cover_medium;
                 })
                 .catch(error => console.error('Erreur lors de la récupération des données :', error));
+        } else {
+            // Si le token n'est pas présent dans l'URL, vérifier le localStorage
+            const storedToken = localStorage.getItem('deezer_access_token');
+
+            if (storedToken) {
+                // Utiliser le token stocké pour récupérer la musique en cours
+                fetch('https://api.deezer.com/user/me/player?access_token=' + storedToken)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('nowPlaying').style.display = 'block';
+                        document.getElementById('trackName').textContent = 'Titre : ' + data.track.title;
+                        document.getElementById('artistName').textContent = 'Artiste : ' + data.track.artist.name;
+                        document.getElementById('albumName').textContent = 'Album : ' + data.track.album.title;
+                        document.getElementById('albumCover').src = data.track.album.cover_medium;
+                    })
+                    .catch(error => console.error('Erreur lors de la récupération des données :', error));
+            } else {
+                // Si aucun token n'est trouvé, afficher le bouton de connexion
+                document.getElementById('connect').style.display = 'block';
+            }
         }
     </script>
 </body>
