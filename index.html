@@ -49,6 +49,7 @@
                 },
                 success: function(data) {
                     if (data && data.data && data.data[0]) {
+                        console.log("Data received from API:", data); // Affiche les données complètes de l'API dans la console
                         const track = data.data[0];
                         $('#artist').text(track.artist.name);
                         $('#album').text(track.album.title);
