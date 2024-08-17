@@ -42,27 +42,20 @@
         function getCurrentTrack() {
             if (!accessToken) return;
 
+            const accessToken = 'frjvsa0hjP9AgXIhYXg1mu97bNSscmKGcSCJvCd0XgRZBRKOZ9'; // Remplacez par le jeton d'accès réel
+
             $.ajax({
-                url: 'https://api.deezer.com/user/4529283902/history',
+                url: 'https://api.deezer.com/user/me/history',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 },
                 success: function(data) {
-                    console.log("Data received from API:", data); // Affiche les données complètes de l'API dans la console
-                    if (data && data.track) {
-                        $('#artist').text(data.track.artist.name);
-                        $('#album').text(data.track.album.title);
-                        $('#title').text(data.track.title);
-                        $('#album-art').attr('src', data.track.album.cover_big);
-                    } else {
-                        $('#artist').text('-');
-                        $('#album').text('-');
-                        $('#title').text('-');
-                        $('#album-art').attr('src', '');
-                    }
+                    console.log("Data received from API:", data);
                 },
                 error: function(xhr, status, error) {
                     console.error('Erreur lors de la récupération des données :', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
                 }
             });
         }
