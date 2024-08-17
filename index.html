@@ -58,6 +58,19 @@
                 }
             });
         }
+
+        // Abonnez-vous aux événements du lecteur Deezer pour mettre à jour les informations en temps réel
+        DZ.Event.subscribe('player_play', function() {
+            console.log("Le lecteur est en cours de lecture");
+            updateNowPlaying();
+        });
+
+        DZ.Event.subscribe('current_track', function(track) {
+            console.log("Piste actuellement lue", track);
+            if (track) {
+                document.getElementById('now-playing').textContent = `Titre : ${track.title} - Artiste : ${track.artist.name}`;
+            }
+        });
     </script>
 </body>
 </html>
