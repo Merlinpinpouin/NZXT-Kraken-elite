@@ -43,7 +43,7 @@
             if (!accessToken) return;
 
             $.ajax({
-                url: 'https://api.deezer.com/user/me/player/currently-playing',  // Endpoint pour la musique en cours
+                url: 'https://api.deezer.com/user/4529283902/history',  // Endpoint pour la musique en cours
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 },
