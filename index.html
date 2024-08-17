@@ -4,70 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deezer Now Playing</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #current-track {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>Deezer Now Playing</h1>
-    <button id="connect">Se connecter à Deezer</button>
-    <div id="nowPlaying" style="display: none;">
-        <h2>Musique en cours :</h2>
-        <p id="trackName">Titre : </p>
-        <p id="artistName">Artiste : </p>
-        <p id="albumName">Album : </p>
-        <img id="albumCover" src="" alt="Album Cover" style="width: 200px;">
+    <button id="login-btn">Se connecter à Deezer</button>
+    <div id="current-track">
+        <p><strong>Artiste:</strong> <span id="artist">-</span></p>
+        <p><strong>Album:</strong> <span id="album">-</span></p>
+        <p><strong>Titre:</strong> <span id="title">-</span></p>
+        <img id="album-art" src="" alt="Album Art" style="max-width: 300px; margin-top: 10px;">
     </div>
 
     <script>
-        const appId = '628564';
-        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/index.html'; // URL de redirection configurée
+        const appId = '628564';  // Votre Application ID Deezer
+        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite';  // URL de redirection
 
-        // Fonction pour rediriger vers Deezer pour l'authentification
-        function redirectToDeezerAuth() {
-            const authUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=basic_access,listening_history`;
+        let accessToken = '';
+
+        // Fonction pour se connecter à Deezer
+        function login() {
+            const authUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=basic_access`;
             window.location.href = authUrl;
         }
 
-        // Affiche le bouton de connexion si le token n'est pas encore stocké
-        document.getElementById('connect').addEventListener('click', redirectToDeezerAuth);
+        // Fonction pour obtenir les informations de la musique en cours
+        function getCurrentTrack() {
+            if (!accessToken) return;
 
-        // Fonction pour gérer le token d'accès et afficher les informations de la musique en cours
-        function handleToken() {
-            const urlParams = new URLSearchParams(window.location.hash.substr(1));
-            const accessToken = urlParams.get('access_token');
-
-            if (accessToken) {
-                localStorage.setItem('deezer_access_token', accessToken);
-                window.location.hash = '';
-                displayNowPlaying(accessToken);
-            } else {
-                const storedToken = localStorage.getItem('deezer_access_token');
-                if (storedToken) {
-                    displayNowPlaying(storedToken);
-                } else {
-                    document.getElementById('connect').style.display = 'block';
+            $.ajax({
+                url: 'https://api.deezer.com/user/me/player/currently-playing',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                success: function(data) {
+                    if (data && data.track) {
+                        $('#artist').text(data.track.artist.name);
+                        $('#album').text(data.track.album.title);
+                        $('#title').text(data.track.title);
+                        $('#album-art').attr('src', data.track.album.cover_big);
+                    } else {
+                        $('#artist').text('-');
+                        $('#album').text('-');
+                        $('#title').text('-');
+                        $('#album-art').attr('src', '');
+                    }
                 }
+            });
+        }
+
+        // Vérifie si nous avons un access token dans l'URL
+        function checkAccessToken() {
+            const params = new URLSearchParams(window.location.hash.substring(1));
+            if (params.has('access_token')) {
+                accessToken = params.get('access_token');
+                window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
+                getCurrentTrack(); // Obtenir les informations de la musique en cours
             }
         }
 
-        // Fonction pour afficher les informations de la musique en cours
-        function displayNowPlaying(accessToken) {
-            fetch('https://api.deezer.com/user/me/player?access_token=' + accessToken)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.track) {
-                        document.getElementById('nowPlaying').style.display = 'block';
-                        document.getElementById('trackName').textContent = 'Titre : ' + data.track.title;
-                        document.getElementById('artistName').textContent = 'Artiste : ' + data.track.artist.name;
-                        document.getElementById('albumName').textContent = 'Album : ' + data.track.album.title;
-                        document.getElementById('albumCover').src = data.track.album.cover_medium;
-                    } else {
-                        console.error('Erreur : Les données de musique ne sont pas disponibles.');
-                    }
-                })
-                .catch(error => console.error('Erreur lors de la récupération des données :', error));
-        }
-
-        // Appelle la fonction pour gérer le token à chaque chargement de la page
-        handleToken();
+        // Événements
+        $('#login-btn').on('click', login);
+        $(document).ready(checkAccessToken);
     </script>
 </body>
 </html>
