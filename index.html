@@ -48,6 +48,7 @@
                     'Authorization': `Bearer ${accessToken}`
                 },
                 success: function(data) {
+                    console.log('Data received:', data);  // Log des données reçues
                     if (data && data.track) {
                         $('#artist').text(data.track.artist.name);
                         $('#album').text(data.track.album.title);
