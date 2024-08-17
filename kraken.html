@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deezer Now Playing</title>
+</head>
+<body>
+    <h1>Deezer Now Playing</h1>
+    <button id="connect">Se connecter à Deezer</button>
+    <div id="nowPlaying" style="display: none;">
+        <h2>Musique en cours :</h2>
+        <p id="trackName">Titre : </p>
+        <p id="artistName">Artiste : </p>
+        <p id="albumName">Album : </p>
+        <img id="albumCover" src="" alt="Album Cover" style="width: 200px;">
+    </div>
+
+    <script>
+        const appId = '628564';
+        const redirectUri = window.location.href;
+
+        document.getElementById('connect').addEventListener('click', () => {
+            window.location.href = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=basic_access,listening_history`;
+        });
+
+        // Récupérer le token d'accès depuis l'URL
+        const urlParams = new URLSearchParams(window.location.hash.substr(1));
+        const accessToken = urlParams.get('access_token');
+
+        if (accessToken) {
+            // Cacher le bouton de connexion si connecté
+            document.getElementById('connect').style.display = 'none';
+
+            // Afficher la musique en cours
+            fetch('https://api.deezer.com/user/me/player?access_token=' + accessToken)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('nowPlaying').style.display = 'block';
+                    document.getElementById('trackName').textContent = 'Titre : ' + data.track.title;
+                    document.getElementById('artistName').textContent = 'Artiste : ' + data.track.artist.name;
+                    document.getElementById('albumName').textContent = 'Album : ' + data.track.album.title;
+                    document.getElementById('albumCover').src = data.track.album.cover_medium;
+                })
+                .catch(error => console.error('Erreur lors de la récupération des données :', error));
+        }
+    </script>
+</body>
+</html>
