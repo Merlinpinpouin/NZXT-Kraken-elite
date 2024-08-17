@@ -18,24 +18,20 @@
 
     <script>
         const appId = '628564';
-        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/index.html'; // Remplace par ton URL de redirection
+        const redirectUri = 'https://merlinpinpouin.github.io/NZXT-Kraken-elite/index.html'; // Assurez-vous que cela correspond à ce que vous avez configuré dans le portail Deezer
 
         document.getElementById('connect').addEventListener('click', () => {
             window.location.href = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&perms=basic_access,listening_history`;
         });
 
-        // Récupération du token d'accès depuis l'URL
         const urlParams = new URLSearchParams(window.location.hash.substr(1));
         const accessToken = urlParams.get('access_token');
 
         if (accessToken) {
-            // Stocker le token dans localStorage pour une utilisation ultérieure
             localStorage.setItem('deezer_access_token', accessToken);
-
-            // Cacher le bouton de connexion si le token est présent
+            window.location.hash = '';
             document.getElementById('connect').style.display = 'none';
 
-            // Afficher la musique en cours
             fetch('https://api.deezer.com/user/me/player?access_token=' + accessToken)
                 .then(response => response.json())
                 .then(data => {
@@ -47,11 +43,9 @@
                 })
                 .catch(error => console.error('Erreur lors de la récupération des données :', error));
         } else {
-            // Si le token n'est pas présent dans l'URL, vérifier le localStorage
             const storedToken = localStorage.getItem('deezer_access_token');
 
             if (storedToken) {
-                // Utiliser le token stocké pour récupérer la musique en cours
                 fetch('https://api.deezer.com/user/me/player?access_token=' + storedToken)
                     .then(response => response.json())
                     .then(data => {
@@ -63,7 +57,6 @@
                     })
                     .catch(error => console.error('Erreur lors de la récupération des données :', error));
             } else {
-                // Si aucun token n'est trouvé, afficher le bouton de connexion
                 document.getElementById('connect').style.display = 'block';
             }
         }
