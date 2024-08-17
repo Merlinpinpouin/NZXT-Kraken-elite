@@ -34,7 +34,7 @@
 
         // Fonction pour se connecter à Deezer
         function login() {
-            const authUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&perms=basic_access,offline_access`;
+            const authUrl = `https://connect.deezer.com/oauth/auth.php?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&perms=basic_access,offline_access,listening_history`;
             window.location.href = authUrl;
         }
 
