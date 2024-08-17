@@ -43,7 +43,7 @@
             if (!accessToken) return;
 
             $.ajax({
-                url: 'https://api.deezer.com/user/me/player/currently-playing',
+                url: 'https://api.deezer.com/user/me/history',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 },
