@@ -32,11 +32,14 @@
                 channelUrl: APP_DOMAIN + '/channel.html',
                 player: {
                     onReady: function() {
+                        console.log('Deezer SDK ready');
                         document.getElementById('login-button').addEventListener('click', function() {
                             DZ.login(function(response) {
                                 if (response.authResponse) {
+                                    console.log('Logged in');
                                     updateNowPlaying();
                                 } else {
+                                    console.log('Login failed');
                                     document.getElementById('now-playing').textContent = 'Échec de la connexion.';
                                 }
                             });
