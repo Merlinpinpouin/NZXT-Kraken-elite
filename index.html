@@ -43,16 +43,17 @@
             if (!accessToken) return;
 
             $.ajax({
-                url: 'https://api.deezer.com/user/me/player/currently-playing',
+                url: 'https://api.deezer.com/user/me/player',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 },
                 success: function(data) {
-                    if (data && data.track) {
-                        $('#artist').text(data.track.artist.name);
-                        $('#album').text(data.track.album.title);
-                        $('#title').text(data.track.title);
-                        $('#album-art').attr('src', data.track.album.cover_big);
+                    if (data && data.data && data.data[0]) {
+                        const track = data.data[0];
+                        $('#artist').text(track.artist.name);
+                        $('#album').text(track.album.title);
+                        $('#title').text(track.title);
+                        $('#album-art').attr('src', track.album.cover_big);
                     } else {
                         $('#artist').text('-');
                         $('#album').text('-');
@@ -70,17 +71,9 @@
         function checkAccessToken() {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             if (hashParams.has('access_token')) {
-                const code = hashParams.get('access_token');
-                fetch(`http://localhost:3000/get-access-token?code=${code}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        accessToken = data.accessToken;
-                        window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
-                        getCurrentTrack(); // Obtenir les informations de la musique en cours
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la récupération du jeton d\'accès :', error);
-                    });
+                accessToken = hashParams.get('access_token');
+                window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
+                getCurrentTrack(); // Obtenir les informations de la musique en cours
             }
         }
 
