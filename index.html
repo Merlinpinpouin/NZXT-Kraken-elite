@@ -72,6 +72,7 @@
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             if (hashParams.has('access_token')) {
                 accessToken = hashParams.get('access_token');
+                console.log("Access Token:", accessToken);
                 window.history.replaceState({}, document.title, redirectUri); // Nettoyer l'URL
                 getCurrentTrack(); // Obtenir les informations de la musique en cours
             }
